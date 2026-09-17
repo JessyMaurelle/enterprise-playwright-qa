@@ -49,4 +49,38 @@ test.describe('Product search', () => {
       ).toBeVisible();
     });
   });
+
+  test('@regression product quantity respects the minimum boundary', async ({ page }) => {
+    await test.step('Open a product', async () => {
+        await page.goto('/');
+
+        await page.getByPlaceholder(/search/i).fill('hammer');
+        await page.getByRole('button', { name: /search/i }).click();
+
+        await page.locator('[data-test="product-name"]').first().click();
+    });
+
+    await test.step('Verify the minimum quantity', async () => {
+        const quantityInput = page.locator('[data-test="quantity"]');
+        const decreaseButton = page.locator('[data-test="decrease-quantity"]');
+
+        await expect(quantityInput).toHaveValue('1');
+        await decreaseButton.click();
+        await expect(quantityInput).toHaveValue('1');
+    });
+
+    await test.step('Increase the quantity', async () => {
+        await page.locator('[data-test="increase-quantity"]').click();
+
+        await expect(page.locator('[data-test="quantity"]')).toHaveValue('2');
+    });
+
+    await test.step('Add two units to the cart', async () => {
+        await page.locator('[data-test="add-to-cart"]').click();
+
+        await page.locator('[data-test="nav-cart"]').click();
+
+        await expect(page.locator('[data-test="product-quantity"]')).toHaveValue('2');
+    });
+    });
 });
